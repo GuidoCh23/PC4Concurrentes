@@ -1,0 +1,25 @@
+# Modelo de IA - YOLO
+ultralytics==8.3.0
+torch>=2.0.0
+torchvision>=0.15.0
+
+# Procesamiento de video e imágenes
+opencv-python==4.10.0.84
+opencv-contrib-python==4.10.0.84
+Pillow>=10.0.0
+
+# Dataset de Kaggle
+kaggle>=1.6.0
+
+# Utilidades
+numpy>=1.24.0
+pandas>=2.0.0
+
+# GUI para Cliente Vigilante
+tk>=0.1.0
+
+# Registro y logs
+python-dateutil>=2.8.0
+
+# Comunicación de red (sockets ya incluido en Python estándar)
+# Solo librerías auxiliares, NO frameworks de comunicación

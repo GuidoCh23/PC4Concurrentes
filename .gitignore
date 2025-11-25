@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# Modelos entrenados
+models/*.pt
+models/*.pth
+models/*.h5
+!models/.gitkeep
+
+# Logs
+logs/*.json
+logs/*.log
+!logs/.gitkeep
+
+# Frames de prueba
+test_frames/
+
+# YOLO runs
+runs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Configuración personal (backup del original)
+config/config.json.backup
+
+# venv
+.venv

@@ -1,0 +1,107 @@
+{
+  "sistema": {
+    "nombre": "Sistema Distribuido de Reconocimiento de Objetos",
+    "version": "1.0.0"
+  },
+
+  "camaras": {
+    "activas": true,
+    "cantidad": 3,
+    "lista": [
+      {
+        "id": 1,
+        "nombre": "Camara Entrada",
+        "rtsp_url": "(COLOCAR_AQUI: rtsp://usuario:password@IP:puerto/stream)",
+        "enabled": true,
+        "fps": 30
+      },
+      {
+        "id": 2,
+        "nombre": "Camara Pasillo",
+        "rtsp_url": "(COLOCAR_AQUI: rtsp://usuario:password@IP:puerto/stream)",
+        "enabled": true,
+        "fps": 30
+      },
+      {
+        "id": 3,
+        "nombre": "Camara Salida",
+        "rtsp_url": "(COLOCAR_AQUI: rtsp://usuario:password@IP:puerto/stream)",
+        "enabled": true,
+        "fps": 30
+      }
+    ],
+    "notas": "Formato RTSP: rtsp://usuario:password@192.168.1.100:554/stream1"
+  },
+
+  "servidor_video": {
+    "host": "0.0.0.0",
+    "puerto": 5000,
+    "max_clientes": 10,
+    "buffer_size": 65536,
+    "frame_quality": 90,
+    "resize_width": 640,
+    "resize_height": 480
+  },
+
+  "servidor_entrenamiento": {
+    "host": "0.0.0.0",
+    "puerto": 5001,
+    "modelo_tipo": "yolov8",
+    "modelo_size": "n",
+    "epochs": 50,
+    "batch_size": 16,
+    "img_size": 640,
+    "modelo_guardado": "models/mejor_modelo.pt",
+    "dataset_path": "data/train"
+  },
+
+  "servidor_testeo": {
+    "host": "0.0.0.0",
+    "puerto": 5002,
+    "modelo_path": "models/mejor_modelo.pt",
+    "confidence_threshold": 0.5,
+    "iou_threshold": 0.45,
+    "guardar_detecciones": true,
+    "detecciones_path": "detecciones",
+    "log_path": "logs/detecciones.json"
+  },
+
+  "cliente_vigilante": {
+    "servidor_testeo_host": "(COLOCAR_AQUI: IP del servidor de testeo)",
+    "servidor_testeo_puerto": 5002,
+    "actualizar_cada_ms": 1000,
+    "max_registros_mostrar": 100
+  },
+
+  "modelo": {
+    "clases": [
+      "persona",
+      "bicicleta",
+      "carro",
+      "motocicleta",
+      "perro",
+      "gato",
+      "pajaro"
+    ],
+    "num_clases": 7
+  },
+
+  "dataset": {
+    "nombre": "COCO-subset",
+    "fuente": "Kaggle",
+    "kaggle_dataset": "(COLOCAR_AQUI: nombre del dataset de Kaggle, ej: ultralytics/coco128)",
+    "clases_usar": ["person", "bicycle", "car", "motorcycle", "dog", "cat", "bird"]
+  },
+
+  "red": {
+    "timeout": 30,
+    "max_reintentos": 3,
+    "keepalive": true
+  },
+
+  "concurrencia": {
+    "max_hilos_video": 10,
+    "max_hilos_testeo": 5,
+    "queue_size": 100
+  }
+}
