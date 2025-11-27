@@ -178,7 +178,7 @@ class ProcesadorFrames(threading.Thread):
         self.running = False
         self.frames_procesados = 0
         self.frames_con_deteccion = 0  # Contador de frames con detección
-        self.GUARDAR_CADA_N_FRAMES = 30  # Guardar solo cada 30 frames
+        self.last_detection_time = 0   # Tiempo de la última detección guardada
 
     def run(self):
         """Ejecuta el procesamiento de frames"""
@@ -200,53 +200,53 @@ class ProcesadorFrames(threading.Thread):
                 # Detectar objetos
                 detecciones = self.detector.detectar(frame)
 
-                # Solo guardar si hay detecciones Y es el frame correcto
-                if detecciones:
+                # Solo guardar si hay detecciones Y ha pasado suficiente tiempo
+                current_time = time.time()
+                if detecciones and (current_time - self.last_detection_time >= 3.0):
+                    self.last_detection_time = current_time
                     self.frames_con_deteccion += 1
 
-                    # Guardar solo cada N frames con detección
-                    if self.frames_con_deteccion % self.GUARDAR_CADA_N_FRAMES == 0:
-                        # Procesar cada detección
-                        for deteccion in detecciones:
-                            # Dibujar detección en el frame
-                            frame_con_bbox = ImageUtils.dibujar_deteccion(
-                                frame.copy(),
-                                deteccion['bbox'],
-                                deteccion['clase'],
-                                deteccion['confianza']
-                            )
+                    # Procesar cada detección
+                    for deteccion in detecciones:
+                        # Dibujar detección en el frame
+                        frame_con_bbox = ImageUtils.dibujar_deteccion(
+                            frame.copy(),
+                            deteccion['bbox'],
+                            deteccion['clase'],
+                            deteccion['confianza']
+                        )
 
-                            # Guardar imagen
-                            imagen_path = PathUtils.crear_ruta_deteccion(
-                                camera_id,
-                                self.config['detecciones_path']
-                            )
+                        # Guardar imagen
+                        imagen_path = PathUtils.crear_ruta_deteccion(
+                            camera_id,
+                            self.config['detecciones_path']
+                        )
 
-                            if ImageUtils.guardar_imagen(frame_con_bbox, imagen_path):
-                                # Crear registro de detección
-                                registro = {
-                                    'id': self.frames_procesados,
-                                    'camera_id': camera_id,
-                                    'objeto': deteccion['clase'],
-                                    'confianza': deteccion['confianza'],
-                                    'bbox': deteccion['bbox'],
-                                    'imagen_path': imagen_path,
-                                    'timestamp': timestamp,
-                                    'fecha': datetime.now().strftime("%Y-%m-%d"),
-                                    'hora': datetime.now().strftime("%H:%M:%S")
-                                }
+                        if ImageUtils.guardar_imagen(frame_con_bbox, imagen_path):
+                            # Crear registro de detección
+                            registro = {
+                                'id': self.frames_procesados,
+                                'camera_id': camera_id,
+                                'objeto': deteccion['clase'],
+                                'confianza': deteccion['confianza'],
+                                'bbox': deteccion['bbox'],
+                                'imagen_path': imagen_path,
+                                'timestamp': timestamp,
+                                'fecha': datetime.now().strftime("%Y-%m-%d"),
+                                'hora': datetime.now().strftime("%H:%M:%S")
+                            }
 
-                                # Agregar al log
-                                self.log_manager.agregar_deteccion(registro)
+                            # Agregar al log
+                            self.log_manager.agregar_deteccion(registro)
 
-                                # Notificar al cliente vigilante
-                                if self.notificador_callback:
-                                    self.notificador_callback(registro)
+                            # Notificar al cliente vigilante
+                            if self.notificador_callback:
+                                self.notificador_callback(registro)
 
-                                print(f"[Detección {self.frames_con_deteccion}] Cámara {camera_id}: {deteccion['clase']} ({deteccion['confianza']:.2f}) - GUARDADA")
-                    else:
-                        # Solo contar, no guardar
-                        print(f"[Detección {self.frames_con_deteccion}] Detectados {len(detecciones)} objetos - NO guardado (guardar cada {self.GUARDAR_CADA_N_FRAMES})")
+                            print(f"[Detección {self.frames_con_deteccion}] Cámara {camera_id}: {deteccion['clase']} ({deteccion['confianza']:.2f}) - GUARDADA")
+                elif detecciones:
+                    # Solo contar, no guardar
+                    pass
 
                 self.frames_procesados += 1
 
@@ -297,7 +297,8 @@ class ServidorTesteo:
 
         # Procesadores de frames (hilos)
         self.procesadores = []
-        self.num_procesadores = self.config_general['concurrencia']['max_hilos_testeo']
+        # self.num_procesadores = self.config_general['concurrencia']['max_hilos_testeo']
+        self.num_procesadores = 1 # Reducir a 1 para debug
 
         # Socket servidor para clientes vigilantes
         self.socket_servidor = None
@@ -341,6 +342,7 @@ class ServidorTesteo:
         except Exception as e:
             print(f"ERROR conectando al servidor de video: {e}")
             print("  Asegúrate de que el servidor de video esté ejecutándose")
+            self.socket_video = None
             return False
 
     def iniciar_procesadores(self):
@@ -372,7 +374,9 @@ class ServidorTesteo:
 
             for cliente in self.clientes_vigilantes:
                 try:
+                    print(f"[Notificador] Enviando detección a cliente {cliente.getpeername()}...")
                     Protocolo.enviar_mensaje(cliente, TipoMensaje.DETECTION, deteccion)
+                    print(f"[Notificador] Enviado OK")
                 except Exception as e:
                     print(f"[Notificador] Error enviando a cliente: {e}")
                     clientes_desconectados.append(cliente)
@@ -445,20 +449,24 @@ class ServidorTesteo:
 
     def _aceptar_vigilantes(self):
         """Acepta conexiones de clientes vigilantes"""
+        print("[Vigilante] Hilo de aceptación iniciado", flush=True)
         while self.running:
             try:
+                # print("[Vigilante] Esperando conexión...") # Comentado para no saturar
                 cliente_socket, cliente_addr = self.socket_servidor.accept()
-                print(f"[Vigilante] Nueva conexión: {cliente_addr}")
+                print(f"[Vigilante] Nueva conexión aceptada: {cliente_addr}", flush=True)
 
                 with self.clientes_lock:
                     self.clientes_vigilantes.append(cliente_socket)
 
                 # Manejar solicitudes del cliente en un hilo
-                threading.Thread(
+                t = threading.Thread(
                     target=self._manejar_vigilante,
                     args=(cliente_socket, cliente_addr),
                     daemon=True
-                ).start()
+                )
+                t.start()
+                print(f"[Vigilante] Hilo iniciado para {cliente_addr}", flush=True)
 
             except Exception as e:
                 if self.running:
@@ -471,10 +479,12 @@ class ServidorTesteo:
                 mensaje = Protocolo.recibir_mensaje(cliente_socket)
 
                 if not mensaje:
+                    print(f"[Vigilante {cliente_addr}] Conexión cerrada por cliente o error")
                     break
 
                 tipo = mensaje.get('tipo')
                 datos = mensaje.get('datos', {})
+                print(f"[Vigilante {cliente_addr}] Mensaje recibido: {tipo}")
 
                 if tipo == TipoMensaje.GET_DETECTIONS:
                     # Enviar historial de detecciones
@@ -513,6 +523,8 @@ class ServidorTesteo:
                 print("\nERROR: No se pudo cargar el modelo")
                 return
 
+            self.running = True
+
             # Iniciar procesadores
             self.iniciar_procesadores()
 
@@ -521,13 +533,17 @@ class ServidorTesteo:
 
             # Conectar al servidor de video
             if not self.conectar_servidor_video():
-                print("\nERROR: No se pudo conectar al servidor de video")
-                return
-
-            self.running = True
+                print("\nADVERTENCIA: No se pudo conectar al servidor de video")
+                print("  El sistema funcionará solo en modo histórico (sin nuevas detecciones)")
+                # No retornamos, permitimos que siga ejecutándose
 
             # Iniciar recepción de frames
-            self.recibir_frames()
+            if self.socket_video:
+                self.recibir_frames()
+            else:
+                print("[Servidor] Ejecutando en modo espera (solo clientes)...")
+                while self.running:
+                    time.sleep(1)
 
         except KeyboardInterrupt:
             print("\n[Servidor] Interrupción detectada")

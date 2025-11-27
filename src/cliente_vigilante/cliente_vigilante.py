@@ -75,7 +75,7 @@ class ClienteVigilante:
 
         # Detecciones
         self.detecciones = []
-        self.detecciones_lock = threading.Lock()
+        self.detecciones_lock = threading.RLock()
 
         # Interfaz gráfica
         self.root = None
@@ -97,6 +97,7 @@ class ClienteVigilante:
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.socket.settimeout(10)
             self.socket.connect((self.servidor_host, self.servidor_puerto))
+            self.socket.settimeout(None)  # Desactivar timeout para mantener conexión viva
 
             print("Conexión exitosa")
             self.conectado = True
@@ -105,6 +106,7 @@ class ClienteVigilante:
             Protocolo.enviar_mensaje(self.socket, TipoMensaje.GET_DETECTIONS, {
                 'limite': self.max_registros
             })
+            print("[Cliente] Solicitud de historial enviada", flush=True)
 
             # Suscribirse a actualizaciones
             Protocolo.enviar_mensaje(self.socket, TipoMensaje.SUBSCRIBE_UPDATES, {})
@@ -130,6 +132,7 @@ class ClienteVigilante:
 
                 tipo = mensaje.get('tipo')
                 datos = mensaje.get('datos', {})
+                print(f"[Cliente] Mensaje recibido: {tipo}", flush=True)
 
                 if tipo == TipoMensaje.DETECTION:
                     # Nueva detección
@@ -377,6 +380,8 @@ class ClienteVigilante:
     def _mostrar_imagen(self, imagen_path: str):
         """Muestra una imagen de detección"""
         try:
+            abs_path = os.path.abspath(imagen_path)
+            print(f"[GUI] Intentando cargar imagen: {abs_path}")
             if not os.path.exists(imagen_path):
                 self.imagen_label.config(
                     image='',
@@ -413,6 +418,7 @@ class ClienteVigilante:
     def actualizar_interfaz(self):
         """Actualiza la interfaz con nuevas detecciones"""
         try:
+            # print("[GUI] Actualizando interfaz...", flush=True) # Debug
             with self.detecciones_lock:
                 # Obtener IDs actuales en la tabla
                 items_actuales = set()
@@ -420,8 +426,11 @@ class ClienteVigilante:
                     valores = self.tabla_detecciones.item(item, 'values')
                     if valores:
                         items_actuales.add(int(valores[0]))
+                
+                # print(f"[GUI] Items en tabla: {len(items_actuales)} | Items en memoria: {len(self.detecciones)}", flush=True)
 
                 # Agregar nuevas detecciones
+                nuevos = 0
                 for deteccion in self.detecciones:
                     det_id = deteccion.get('id', 0)
 
@@ -436,6 +445,16 @@ class ClienteVigilante:
                         )
 
                         self.tabla_detecciones.insert('', 0, values=valores)
+                        print(f"[GUI] Insertada fila ID: {det_id}", flush=True)
+                        nuevos += 1
+                        
+                        # Auto-seleccionar la primera detección si no hay selección
+                        if not self.tabla_detecciones.selection():
+                            primer_item = self.tabla_detecciones.get_children()[0]
+                            self.tabla_detecciones.selection_set(primer_item)
+                            self.tabla_detecciones.focus(primer_item)
+                            # Disparar evento manualmente
+                            self._on_seleccionar_deteccion(None)
 
                 # Actualizar estadísticas
                 total_detecciones = len(self.detecciones)

@@ -3,7 +3,6 @@
     "nombre": "Sistema Distribuido de Reconocimiento de Objetos",
     "version": "1.0.0"
   },
-
   "camaras": {
     "activas": true,
     "cantidad": 1,
@@ -11,7 +10,7 @@
       {
         "id": 1,
         "nombre": "Camara Entrada",
-        "rtsp_url": "rtsp://192.168.18.10:8080/h264.sdp",
+        "rtsp_url": "rtsp://192.168.18.30:8080/h264.sdp",
         "enabled": true,
         "fps": 30
       },
@@ -32,7 +31,6 @@
     ],
     "notas": "Formato RTSP: rtsp://usuario:password@192.168.1.100:554/stream1"
   },
-
   "servidor_video": {
     "host": "0.0.0.0",
     "puerto": 5000,
@@ -42,7 +40,6 @@
     "resize_width": 640,
     "resize_height": 480
   },
-
   "servidor_entrenamiento": {
     "host": "0.0.0.0",
     "puerto": 5001,
@@ -54,7 +51,6 @@
     "modelo_guardado": "models/mejor_modelo.pt",
     "dataset_path": "data/train"
   },
-
   "servidor_testeo": {
     "host": "0.0.0.0",
     "puerto": 5002,
@@ -65,14 +61,12 @@
     "detecciones_path": "detecciones",
     "log_path": "logs/detecciones.json"
   },
-
   "cliente_vigilante": {
     "servidor_testeo_host": "127.0.0.1",
     "servidor_testeo_puerto": 5002,
     "actualizar_cada_ms": 1000,
     "max_registros_mostrar": 100
   },
-
   "modelo": {
     "clases": [
       "persona",
@@ -85,20 +79,25 @@
     ],
     "num_clases": 7
   },
-
   "dataset": {
     "nombre": "COCO-subset",
     "fuente": "Kaggle",
     "kaggle_dataset": "(COLOCAR_AQUI: nombre del dataset de Kaggle, ej: ultralytics/coco128)",
-    "clases_usar": ["person", "bicycle", "car", "motorcycle", "dog", "cat", "bird"]
+    "clases_usar": [
+      "person",
+      "bicycle",
+      "car",
+      "motorcycle",
+      "dog",
+      "cat",
+      "bird"
+    ]
   },
-
   "red": {
     "timeout": 30,
     "max_reintentos": 3,
     "keepalive": true
   },
-
   "concurrencia": {
     "max_hilos_video": 10,
     "max_hilos_testeo": 5,
