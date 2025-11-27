@@ -1,14 +1,19 @@
 #!/bin/bash
 # Script para probar si Java puede leer las imágenes
 
-cd /home/guido/Desktop/PC4concurrentes
+# No hardcode paths
+# cd /home/guido/Desktop/PC4concurrentes
 
 # Obtener una imagen reciente
 IMAGEN=$(ls -t detecciones/camara_1/*.jpg 2>/dev/null | head -1)
 
 if [ -z "$IMAGEN" ]; then
     echo "❌ No hay imágenes en detecciones/camara_1/"
-    exit 1
+    # Intento crear un directorio y un archivo dummy si no existen para testear
+    mkdir -p detecciones/camara_1/
+    touch detecciones/camara_1/test_dummy.jpg
+    IMAGEN="detecciones/camara_1/test_dummy.jpg"
+    echo "⚠️  Creada imagen dummy para prueba: $IMAGEN"
 fi
 
 echo "Probando acceso a imagen:"
@@ -46,7 +51,7 @@ public class TestImagen {
                     System.out.println("✅ Imagen cargada exitosamente");
                     System.out.println("   Dimensiones: " + img.getWidth() + "x" + img.getHeight());
                 } else {
-                    System.out.println("❌ ImageIO.read() retornó null");
+                    System.out.println("❌ ImageIO.read() retornó null (posiblemente no es una imagen válida o dummy vacía)");
                 }
             } catch (Exception e) {
                 System.out.println("❌ Error cargando imagen: " + e.getMessage());

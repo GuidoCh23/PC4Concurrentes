@@ -1,7 +1,8 @@
 #!/bin/bash
 # Ejecutar Cliente Vigilante en Java
 
-cd /home/guido/Desktop/PC4concurrentes
+# No hardcode paths
+# cd /home/guido/Desktop/PC4concurrentes
 
 echo "🚀 Iniciando Cliente Vigilante (Java)"
 echo "   Directorio: $(pwd)"

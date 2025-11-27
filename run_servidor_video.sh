@@ -1,7 +1,8 @@
 #!/bin/bash
 # Ejecutar Servidor de Video (C++)
 
-cd /home/guido/Desktop/PC4concurrentes
+# No hardcode paths
+# cd /home/guido/Desktop/PC4concurrentes
 
 # Limpiar puerto 5000 si está en uso
 echo "🧹 Limpiando puerto 5000..."

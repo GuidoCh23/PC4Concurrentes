@@ -1,7 +1,8 @@
 #!/bin/bash
 # Ejecutar Servidor de Testeo (Python + YOLO)
 
-cd /home/guido/Desktop/PC4concurrentes
+# No hardcode paths
+# cd /home/guido/Desktop/PC4concurrentes
 
 # Limpiar puerto 5002 si está en uso
 echo "🧹 Limpiando puerto 5002..."
