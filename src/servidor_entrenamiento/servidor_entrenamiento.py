@@ -77,7 +77,7 @@ class EntrenadorYOLO:
         try:
             print(f"\n=== Iniciando Entrenamiento YOLO ===")
             print(f"Dataset: {dataset_path}")
-            print(f"Modelo: YOLO{self.modelo_size}")
+            print(f"Modelo: {self.modelo_tipo}{self.modelo_size}")
             print(f"Epochs: {self.epochs}")
             print(f"Batch size: {self.batch_size}")
             print(f"Image size: {self.img_size}")
@@ -85,7 +85,7 @@ class EntrenadorYOLO:
             self.entrenando = True
 
             # Cargar modelo pre-entrenado base
-            modelo_base = f"yolo{self.modelo_size}.pt"
+            modelo_base = f"{self.modelo_tipo}{self.modelo_size}.pt"
             print(f"\nCargando modelo base: {modelo_base}")
             self.modelo = YOLO(modelo_base)
 
