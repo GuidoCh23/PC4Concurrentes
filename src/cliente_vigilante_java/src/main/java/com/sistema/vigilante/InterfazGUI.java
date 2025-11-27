@@ -259,11 +259,6 @@ public class InterfazGUI extends JFrame {
                 file = new File(new File(workingDir).getParent(), imagenPath);
             }
 
-            // Ruta 4: Ruta absoluta hardcoded como último recurso
-            if (!file.exists()) {
-                file = new File("/home/guido/Desktop/PC4concurrentes", imagenPath);
-            }
-
             if (!file.exists()) {
                 imagenLabel.setIcon(null);
                 imagenLabel.setText("<html><center>Imagen no encontrada:<br>" +
