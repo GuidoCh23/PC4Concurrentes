@@ -26,7 +26,7 @@ struct Frame {
 class FrameQueue {
 private:
     std::queue<Frame> cola;
-    std::mutex mtx;
+    mutable std::mutex mtx;
     size_t maxSize;
 
 public:

@@ -58,6 +58,7 @@ public class ClienteVigilante {
             System.out.println("Conectando a " + servidorHost + ":" + servidorPuerto + "...");
 
             socket = new Socket(servidorHost, servidorPuerto);
+            socket.setSoTimeout(5000);  // Timeout de 5 segundos para lecturas
             input = socket.getInputStream();
             output = socket.getOutputStream();
 
@@ -66,12 +67,16 @@ public class ClienteVigilante {
             conectado = true;
 
             // Solicitar historial de detecciones
+            System.out.println("📤 Solicitando historial de detecciones...");
             JSONObject datos = new JSONObject();
             datos.put("limite", maxRegistros);
             Protocolo.enviarMensaje(output, Protocolo.GET_DETECTIONS, datos);
+            System.out.println("✓ Solicitud enviada");
 
             // Suscribirse a actualizaciones
+            System.out.println("📤 Suscribiéndose a actualizaciones...");
             Protocolo.enviarMensaje(output, Protocolo.SUBSCRIBE_UPDATES, new JSONObject());
+            System.out.println("✓ Suscripción enviada");
 
             return true;
 
@@ -100,22 +105,28 @@ public class ClienteVigilante {
                 String tipo = mensaje.getString("tipo");
                 JSONObject datos = mensaje.getJSONObject("datos");
 
+                System.out.println("[Receptor] Mensaje tipo: " + tipo);
+
                 switch (tipo) {
                     case Protocolo.DETECTION:
                         // Nueva detección
                         Deteccion deteccion = new Deteccion(datos);
-                        System.out.println("[Receptor] Detección recibida: " + deteccion);
+                        System.out.println("[Receptor] ✓ Detección recibida: " + deteccion);
 
                         if (gui != null) {
                             gui.agregarDeteccion(deteccion);
+                            System.out.println("[Receptor] ✓ Agregada a GUI");
+                        } else {
+                            System.out.println("[Receptor] ⚠ GUI es null!");
                         }
                         break;
 
                     case Protocolo.ACK:
                         // Respuesta a GET_DETECTIONS
+                        System.out.println("[Receptor] ACK recibido");
                         if (datos.has("detecciones")) {
                             JSONArray detecciones = datos.getJSONArray("detecciones");
-                            System.out.println("[Receptor] Recibidas " + detecciones.length() +
+                            System.out.println("[Receptor] ✓ Recibidas " + detecciones.length() +
                                     " detecciones históricas");
 
                             for (int i = 0; i < detecciones.length(); i++) {
@@ -124,13 +135,16 @@ public class ClienteVigilante {
 
                                 if (gui != null) {
                                     gui.agregarDeteccion(det);
+                                } else {
+                                    System.out.println("[Receptor] ⚠ GUI es null en historial!");
                                 }
                             }
+                            System.out.println("[Receptor] ✓ Todas las detecciones agregadas");
                         }
                         break;
 
                     default:
-                        System.out.println("[Receptor] Mensaje recibido: " + tipo);
+                        System.out.println("[Receptor] Mensaje desconocido: " + tipo);
                 }
 
             } catch (IOException e) {

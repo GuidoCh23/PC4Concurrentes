@@ -57,6 +57,11 @@ public:
      */
     static std::string frameABase64(const std::vector<uint8_t>& buffer);
 
+    /**
+     * Obtiene timestamp ISO 8601
+     */
+    static std::string obtenerTimestamp();
+
 private:
     static constexpr size_t HEADER_SIZE = 4;
 
@@ -64,11 +69,6 @@ private:
      * Recibe exactamente n bytes del socket
      */
     static std::vector<uint8_t> recibirExacto(int socket, size_t n_bytes);
-
-    /**
-     * Obtiene timestamp ISO 8601
-     */
-    static std::string obtenerTimestamp();
 };
 
 #endif // PROTOCOLO_H

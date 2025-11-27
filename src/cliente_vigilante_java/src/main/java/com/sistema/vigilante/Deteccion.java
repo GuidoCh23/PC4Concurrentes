@@ -38,6 +38,9 @@ public class Deteccion {
         this.timestamp = json.optString("timestamp", "");
         this.fecha = json.optString("fecha", "");
         this.hora = json.optString("hora", "");
+
+        // Debug: imprimir ruta de imagen recibida
+        System.out.println("[Deteccion] Ruta imagen recibida: '" + this.imagenPath + "'");
     }
 
     // Getters

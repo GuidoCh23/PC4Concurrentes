@@ -177,6 +177,8 @@ class ProcesadorFrames(threading.Thread):
 
         self.running = False
         self.frames_procesados = 0
+        self.frames_con_deteccion = 0  # Contador de frames con detección
+        self.GUARDAR_CADA_N_FRAMES = 30  # Guardar solo cada 30 frames
 
     def run(self):
         """Ejecuta el procesamiento de frames"""
@@ -198,44 +200,53 @@ class ProcesadorFrames(threading.Thread):
                 # Detectar objetos
                 detecciones = self.detector.detectar(frame)
 
-                # Procesar cada detección
-                for deteccion in detecciones:
-                    # Dibujar detección en el frame
-                    frame_con_bbox = ImageUtils.dibujar_deteccion(
-                        frame.copy(),
-                        deteccion['bbox'],
-                        deteccion['clase'],
-                        deteccion['confianza']
-                    )
+                # Solo guardar si hay detecciones Y es el frame correcto
+                if detecciones:
+                    self.frames_con_deteccion += 1
 
-                    # Guardar imagen
-                    imagen_path = PathUtils.crear_ruta_deteccion(
-                        camera_id,
-                        self.config['detecciones_path']
-                    )
+                    # Guardar solo cada N frames con detección
+                    if self.frames_con_deteccion % self.GUARDAR_CADA_N_FRAMES == 0:
+                        # Procesar cada detección
+                        for deteccion in detecciones:
+                            # Dibujar detección en el frame
+                            frame_con_bbox = ImageUtils.dibujar_deteccion(
+                                frame.copy(),
+                                deteccion['bbox'],
+                                deteccion['clase'],
+                                deteccion['confianza']
+                            )
 
-                    if ImageUtils.guardar_imagen(frame_con_bbox, imagen_path):
-                        # Crear registro de detección
-                        registro = {
-                            'id': self.frames_procesados,
-                            'camera_id': camera_id,
-                            'objeto': deteccion['clase'],
-                            'confianza': deteccion['confianza'],
-                            'bbox': deteccion['bbox'],
-                            'imagen_path': imagen_path,
-                            'timestamp': timestamp,
-                            'fecha': datetime.now().strftime("%Y-%m-%d"),
-                            'hora': datetime.now().strftime("%H:%M:%S")
-                        }
+                            # Guardar imagen
+                            imagen_path = PathUtils.crear_ruta_deteccion(
+                                camera_id,
+                                self.config['detecciones_path']
+                            )
 
-                        # Agregar al log
-                        self.log_manager.agregar_deteccion(registro)
+                            if ImageUtils.guardar_imagen(frame_con_bbox, imagen_path):
+                                # Crear registro de detección
+                                registro = {
+                                    'id': self.frames_procesados,
+                                    'camera_id': camera_id,
+                                    'objeto': deteccion['clase'],
+                                    'confianza': deteccion['confianza'],
+                                    'bbox': deteccion['bbox'],
+                                    'imagen_path': imagen_path,
+                                    'timestamp': timestamp,
+                                    'fecha': datetime.now().strftime("%Y-%m-%d"),
+                                    'hora': datetime.now().strftime("%H:%M:%S")
+                                }
 
-                        # Notificar al cliente vigilante
-                        if self.notificador_callback:
-                            self.notificador_callback(registro)
+                                # Agregar al log
+                                self.log_manager.agregar_deteccion(registro)
 
-                        print(f"[Detección] Cámara {camera_id}: {deteccion['clase']} ({deteccion['confianza']:.2f})")
+                                # Notificar al cliente vigilante
+                                if self.notificador_callback:
+                                    self.notificador_callback(registro)
+
+                                print(f"[Detección {self.frames_con_deteccion}] Cámara {camera_id}: {deteccion['clase']} ({deteccion['confianza']:.2f}) - GUARDADA")
+                    else:
+                        # Solo contar, no guardar
+                        print(f"[Detección {self.frames_con_deteccion}] Detectados {len(detecciones)} objetos - NO guardado (guardar cada {self.GUARDAR_CADA_N_FRAMES})")
 
                 self.frames_procesados += 1
 

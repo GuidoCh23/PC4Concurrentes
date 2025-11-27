@@ -241,13 +241,39 @@ public class InterfazGUI extends JFrame {
 
     private void mostrarImagen(String imagenPath) {
         try {
-            File file = new File(imagenPath);
+            // Intentar múltiples rutas para encontrar la imagen
+            File file = null;
+
+            // Ruta 1: Directa
+            file = new File(imagenPath);
+
+            // Ruta 2: Desde el directorio de trabajo
+            if (!file.exists()) {
+                String workingDir = System.getProperty("user.dir");
+                file = new File(workingDir, imagenPath);
+            }
+
+            // Ruta 3: Directorio padre (si estamos en src/)
+            if (!file.exists()) {
+                String workingDir = System.getProperty("user.dir");
+                file = new File(new File(workingDir).getParent(), imagenPath);
+            }
+
+            // Ruta 4: Ruta absoluta hardcoded como último recurso
+            if (!file.exists()) {
+                file = new File("/home/guido/Desktop/PC4concurrentes", imagenPath);
+            }
 
             if (!file.exists()) {
                 imagenLabel.setIcon(null);
-                imagenLabel.setText("<html><center>Imagen no encontrada:<br>" + imagenPath + "</center></html>");
+                imagenLabel.setText("<html><center>Imagen no encontrada:<br>" +
+                                  file.getAbsolutePath() + "<br><br>" +
+                                  "Working dir: " + System.getProperty("user.dir") + "</center></html>");
+                System.err.println("[GUI] Imagen no encontrada: " + file.getAbsolutePath());
                 return;
             }
+
+            System.out.println("[GUI] Cargando imagen: " + file.getAbsolutePath());
 
             BufferedImage img = ImageIO.read(file);
 

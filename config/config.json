@@ -6,12 +6,12 @@
 
   "camaras": {
     "activas": true,
-    "cantidad": 3,
+    "cantidad": 1,
     "lista": [
       {
         "id": 1,
         "nombre": "Camara Entrada",
-        "rtsp_url": "(COLOCAR_AQUI: rtsp://usuario:password@IP:puerto/stream)",
+        "rtsp_url": "rtsp://192.168.18.10:8080/h264.sdp",
         "enabled": true,
         "fps": 30
       },
@@ -19,14 +19,14 @@
         "id": 2,
         "nombre": "Camara Pasillo",
         "rtsp_url": "(COLOCAR_AQUI: rtsp://usuario:password@IP:puerto/stream)",
-        "enabled": true,
+        "enabled": false,
         "fps": 30
       },
       {
         "id": 3,
         "nombre": "Camara Salida",
         "rtsp_url": "(COLOCAR_AQUI: rtsp://usuario:password@IP:puerto/stream)",
-        "enabled": true,
+        "enabled": false,
         "fps": 30
       }
     ],
@@ -67,7 +67,7 @@
   },
 
   "cliente_vigilante": {
-    "servidor_testeo_host": "(COLOCAR_AQUI: IP del servidor de testeo)",
+    "servidor_testeo_host": "127.0.0.1",
     "servidor_testeo_puerto": 5002,
     "actualizar_cada_ms": 1000,
     "max_registros_mostrar": 100
